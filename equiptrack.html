@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EquipTrack — Equipment & Machinery Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f4f0; --surface: #ffffff; --border: rgba(0,0,0,0.1);
+    --border-md: rgba(0,0,0,0.18); --text: #1a1a18; --text-2: #6b6b67;
+    --text-3: #9c9c97; --radius: 10px; --radius-lg: 14px;
+    --blue: #185FA5; --blue-light: #E6F1FB; --blue-dark: #0C447C;
+    --green: #1D9E75; --green-light: #EAF3DE; --green-dark: #3B6D11;
+    --amber: #BA7517; --amber-light: #FAEEDA; --amber-dark: #854F0B;
+    --red: #A32D2D; --red-light: #FCEBEB;
+    --gray-light: #F1EFE8; --gray: #888780;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; color: var(--text); background: var(--bg); height: 100vh; overflow: hidden; }
+  .app { display: flex; height: 100vh; }
+
+  /* ── Sidebar ── */
+  .sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 0.5px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  .logo { padding: 20px 16px 14px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 30px; height: 30px; background: var(--blue); border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+  .logo-icon i { color: #fff; font-size: 17px; }
+  .logo-name { font-size: 15px; font-weight: 600; letter-spacing: -.3px; }
+  .logo-sub { font-size: 10px; color: var(--text-3); }
+  .nav-section { padding: 14px 16px 4px; font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: .7px; text-transform: uppercase; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text-2); margin: 1px 8px; transition: background .13s, color .13s; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--blue-light); color: var(--blue); font-weight: 600; }
+  .nav-item i { font-size: 16px; width: 18px; }
+  .nav-badge { margin-left: auto; background: var(--red-light); color: var(--red); font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; }
+  .sidebar-user { margin-top: auto; padding: 12px 14px; border-top: 0.5px solid var(--border); display: flex; align-items: center; gap: 9px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--blue-light); color: var(--blue); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .uname { font-size: 12px; font-weight: 600; }
+  .urole { font-size: 10px; color: var(--text-3); }
+
+  /* ── Main ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 0 22px; height: 54px; display: flex; align-items: center; gap: 12px; }
+  .topbar-title { font-size: 16px; font-weight: 600; flex: 1; }
+  .search-box { display: flex; align-items: center; gap: 7px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 8px; padding: 6px 10px; width: 210px; }
+  .search-box input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--text); width: 100%; }
+  .search-box input::placeholder { color: var(--text-3); }
+  .search-box i { color: var(--text-3); font-size: 15px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 13px; border-radius: 8px; border: 0.5px solid var(--border-md); background: transparent; cursor: pointer; font-size: 13px; color: var(--text); font-family: inherit; transition: background .13s; white-space: nowrap; }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn i { font-size: 15px; }
+  .content { flex: 1; overflow-y: auto; padding: 22px; }
+
+  /* ── Cards & Stats ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px 18px; }
+  .stat-label { font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; font-weight: 500; }
+  .stat-value { font-size: 28px; font-weight: 700; line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .panel-header { padding: 14px 16px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .panel-title { font-size: 13px; font-weight: 600; }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 9px 14px; font-size: 10.5px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .5px; border-bottom: 0.5px solid var(--border); background: var(--bg); white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+  .equip-name { font-weight: 600; font-size: 13px; }
+  .equip-id { font-size: 11px; color: var(--text-3); margin-top: 1px; font-family: 'Courier New', monospace; }
+
+  /* ── Badges ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .b-active { background: var(--green-light); color: var(--green-dark); }
+  .b-maintenance { background: var(--amber-light); color: var(--amber-dark); }
+  .b-repair { background: var(--red-light); color: var(--red); }
+  .b-idle { background: var(--gray-light); color: var(--gray); }
+  .b-paid { background: var(--green-light); color: var(--green-dark); }
+  .b-pending { background: var(--amber-light); color: var(--amber-dark); }
+  .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+  /* ── Layout helpers ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .panel-row { display: grid; grid-template-columns: 1fr 310px; gap: 16px; margin-bottom: 18px; }
+  .mb16 { margin-bottom: 16px; }
+  .mb18 { margin-bottom: 18px; }
+
+  /* ── Alert items ── */
+  .alert-item { display: flex; gap: 10px; padding: 10px 14px; border-bottom: 0.5px solid var(--border); align-items: flex-start; }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ai-warn { background: var(--amber-light); color: var(--amber-dark); }
+  .ai-danger { background: var(--red-light); color: var(--red); }
+  .ai-info { background: var(--blue-light); color: var(--blue); }
+  .alert-title { font-size: 12px; font-weight: 600; }
+  .alert-sub { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+  /* ── Progress ── */
+  .prog-bar { height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+  .prog-fill { height: 100%; border-radius: 3px; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 2px; padding: 3px; background: var(--bg); border: 0.5px solid var(--border); border-radius: 9px; margin-bottom: 14px; width: fit-content; }
+  .tab { padding: 5px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; color: var(--text-2); transition: all .13s; }
+  .tab.active { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  /* ── Modal ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 20px; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); border: 0.5px solid var(--border); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+  .modal-header { padding: 16px 20px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-body { padding: 18px 20px; }
+  .modal-footer { padding: 12px 20px; border-top: 0.5px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 10.5px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .5px; }
+  .form-input { border: 0.5px solid var(--border-md); border-radius: 8px; padding: 7px 10px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--surface); outline: none; transition: border .13s; }
+  .form-input:focus { border-color: var(--blue); }
+  .upload-area { border: 1.5px dashed var(--border-md); border-radius: 8px; padding: 18px; text-align: center; color: var(--text-3); font-size: 12px; cursor: pointer; margin-top: 4px; }
+  .upload-area:hover { border-color: var(--blue); color: var(--blue); }
+
+  /* ── Role chip ── */
+  .chip { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+  .chip-admin { background: #EEEDFE; color: #3C3489; }
+  .chip-engineer { background: var(--blue-light); color: var(--blue-dark); }
+  .chip-contractor { background: var(--green-light); color: var(--green-dark); }
+  .chip-client { background: var(--gray-light); color: var(--gray); }
+
+  /* ── Usage heatmap ── */
+  .heatmap-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+
+  /* ── Site card ── */
+  .site-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .site-header { padding: 14px 16px; border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; }
+  .site-machine { display: flex; align-items: center; gap: 10px; padding: 9px 14px; border-bottom: 0.5px solid var(--border); }
+  .site-machine:last-child { border-bottom: none; }
+  .machine-icon { width: 28px; height: 28px; background: var(--bg); border-radius: 7px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* ── Report cards ── */
+  .report-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px; cursor: pointer; transition: border-color .15s, transform .15s; }
+  .report-card:hover { border-color: var(--blue); transform: translateY(-1px); }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 60px; min-width: 60px; }
+    .logo-name, .logo-sub, .nav-item span, .nav-section, .sidebar-user .uname, .sidebar-user .urole { display: none; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .nav-item i { width: auto; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .panel-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="ti ti-crane"></i></div>
+      <div>
+        <div class="logo-name">EquipTrack</div>
+        <div class="logo-sub">Fleet Management</div>
+      </div>
+    </div>
+    <div style="flex:1;padding-bottom:8px;">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" data-view="dashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></div>
+      <div class="nav-item" data-view="equipment"><i class="ti ti-bulldozer"></i><span>Equipment</span></div>
+      <div class="nav-item" data-view="sites"><i class="ti ti-map-pin"></i><span>Site Allocation</span></div>
+      <div class="nav-section">Maintenance</div>
+      <div class="nav-item" data-view="service"><i class="ti ti-tool"></i><span>Service Schedule</span></div>
+      <div class="nav-item" data-view="repairs"><i class="ti ti-settings-cog"></i><span>Repairs</span><span class="nav-badge">3</span></div>
+      <div class="nav-item" data-view="history"><i class="ti ti-history"></i><span>Usage History</span></div>
+      <div class="nav-section">Management</div>
+      <div class="nav-item" data-view="documents"><i class="ti ti-file-text"></i><span>Documents</span></div>
+      <div class="nav-item" data-view="invoices"><i class="ti ti-receipt"></i><span>Invoices</span></div>
+      <div class="nav-item" data-view="users"><i class="ti ti-users"></i><span>Users & Roles</span></div>
+      <div class="nav-item" data-view="reports"><i class="ti ti-chart-bar"></i><span>Reports</span></div>
+    </div>
+    <div class="sidebar-user">
+      <div class="avatar">RK</div>
+      <div>
+        <div class="uname">Raj Kumar</div>
+        <div class="urole"><span class="chip chip-admin">Admin</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="search-box"><i class="ti ti-search"></i><input type="text" placeholder="Search equipment, sites…" id="search-input" oninput="filterTable()"/></div>
+      <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus"></i> Add Equipment</button>
+      <button class="btn" title="Alerts"><i class="ti ti-bell"></i></button>
+      <button class="btn" title="Export" onclick="alert('Export triggered — integrate with your backend to download CSV/PDF.')"><i class="ti ti-download"></i></button>
+    </div>
+    <div class="content" id="content-area"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span style="font-size:14px;font-weight:600;">Add new equipment</span>
+      <button class="btn" style="padding:4px 8px;border:none;" onclick="closeModal()"><i class="ti ti-x" style="font-size:16px;"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Equipment name</label><input class="form-input" placeholder="e.g. CAT 325 Excavator"/></div>
+        <div class="form-group"><label class="form-label">Equipment ID</label><input class="form-input" placeholder="e.g. EQ-012"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Type</label>
+          <select class="form-input"><option>Excavator</option><option>Vehicle</option><option>Crane</option><option>Drill</option><option>Concrete Pump</option><option>Road Equipment</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-input"><option>active</option><option>maintenance</option><option>repair</option><option>idle</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Site allocation</label><input class="form-input" placeholder="e.g. Site A — Hitech City"/></div>
+        <div class="form-group"><label class="form-label">Operator</label><input class="form-input" placeholder="Operator name"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Purchase value (₹)</label><input class="form-input" placeholder="e.g. 48,00,000"/></div>
+        <div class="form-group"><label class="form-label">Next service date</label><input class="form-input" type="date"/></div>
+      </div>
+      <div class="form-group mb16">
+        <label class="form-label">Upload document / photo</label>
+        <div class="upload-area"><i class="ti ti-upload" style="font-size:22px;display:block;margin-bottom:6px;"></i>Click to upload or drag & drop</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes / remarks</label>
+        <textarea class="form-input" rows="2" placeholder="Optional notes…" style="resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEquipment()"><i class="ti ti-check"></i> Save equipment</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Data ── */
+const EQUIPMENT = [
+  {id:'EQ-001',name:'CAT 320 Excavator',type:'Excavator',site:'Site A — Hitech City',status:'active',service:'2025-08-14',hours:1240,operator:'Suresh M.',purchase:'₹48,00,000'},
+  {id:'EQ-002',name:'Volvo FMX Dumper',type:'Vehicle',site:'Site B — Gachibowli',status:'active',service:'2025-07-30',hours:980,operator:'Ravi K.',purchase:'₹32,00,000'},
+  {id:'EQ-003',name:'Atlas Copco Drill',type:'Drill',site:'Site A — Hitech City',status:'maintenance',service:'2025-06-20',hours:560,operator:'Anjali R.',purchase:'₹12,50,000'},
+  {id:'EQ-004',name:'JCB 3CX Backhoe',type:'Excavator',site:'Site C — Kukatpally',status:'active',service:'2025-09-01',hours:2100,operator:'Mohan D.',purchase:'₹28,00,000'},
+  {id:'EQ-005',name:'Schwing Stetter Pump',type:'Concrete',site:'Site B — Gachibowli',status:'repair',service:'2025-06-10',hours:330,operator:'—',purchase:'₹65,00,000'},
+  {id:'EQ-006',name:'TATA 407 Pickup',type:'Vehicle',site:'Depot — Secunderabad',status:'idle',service:'2025-10-01',hours:4400,operator:'Lakshmi T.',purchase:'₹14,00,000'},
+  {id:'EQ-007',name:'Manitowoc 14000 Crane',type:'Crane',site:'Site C — Kukatpally',status:'active',service:'2025-08-22',hours:780,operator:'Prasad N.',purchase:'₹1,20,00,000'},
+  {id:'EQ-008',name:'Wirtgen W200 Milling',type:'Road',site:'Site D — Uppal',status:'maintenance',service:'2025-07-05',hours:650,operator:'Dev S.',purchase:'₹95,00,000'},
+];
+const ALERTS = [
+  {type:'danger',icon:'ti-alert-triangle',title:'Schwing Pump — Repair Overdue',sub:'Service ticket #ST-019 opened 8 days ago'},
+  {type:'warn',icon:'ti-clock',title:'Atlas Copco Drill — Maintenance Due',sub:'Next service in 3 days · 560 hrs logged'},
+  {type:'warn',icon:'ti-clock',title:'Volvo FMX Dumper — Service Soon',sub:'Service scheduled Jul 30 · 980 hrs'},
+  {type:'info',icon:'ti-file-text',title:'Crane insurance renewal due',sub:'Manitowoc 14000 · expires in 14 days'},
+  {type:'info',icon:'ti-map-pin',title:'2 machines unassigned to a site',sub:'EQ-010, EQ-011 available in depot'},
+];
+const INVOICES = [
+  {id:'INV-2024',desc:'CAT 320 Routine Service',vendor:'CAT India',amount:'₹42,000',status:'paid',date:'2025-06-01'},
+  {id:'INV-2023',desc:'Volvo Tyre Replacement ×4',vendor:'MRF Tyres',amount:'₹68,500',status:'paid',date:'2025-05-28'},
+  {id:'INV-2022',desc:'Pump Compressor Repair',vendor:'Atlas Service',amount:'₹1,20,000',status:'pending',date:'2025-06-08'},
+  {id:'INV-2021',desc:'JCB Annual Maintenance',vendor:'JCB India',amount:'₹55,000',status:'pending',date:'2025-06-12'},
+  {id:'INV-2020',desc:'Crane Boom Inspection',vendor:'Manitowoc',amount:'₹38,000',status:'paid',date:'2025-05-15'},
+];
+const USERS = [
+  {name:'Raj Kumar',role:'Admin',av:'RK',email:'raj@acme.co',chip:'chip-admin'},
+  {name:'Priya Singh',role:'Site Engineer',av:'PS',email:'priya@acme.co',chip:'chip-engineer'},
+  {name:'Vikram Reddy',role:'Contractor',av:'VR',email:'vikram@reddyco.in',chip:'chip-contractor'},
+  {name:'Meena Patel',role:'Client',av:'MP',email:'meena@client.com',chip:'chip-client'},
+];
+
+/* ── Helpers ── */
+function sbadge(s){const m={active:'b-active',maintenance:'b-maintenance',repair:'b-repair',idle:'b-idle'};const l={active:'Active',maintenance:'Maintenance',repair:'Repair',idle:'Idle'};return `<span class="badge ${m[s]}"><span class="dot"></span>${l[s]}</span>`;}
+
+/* ── Navigation ── */
+let currentView='dashboard';
+document.querySelectorAll('.nav-item').forEach(n=>{
+  n.addEventListener('click',function(){
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    currentView=this.dataset.view;
+    const titles={dashboard:'Dashboard',equipment:'Equipment Registry',sites:'Site Allocation',service:'Service Schedule',repairs:'Active Repairs',history:'Usage History',documents:'Documents & Photos',invoices:'Invoice & Payments',users:'Users & Roles',reports:'Reports'};
+    document.getElementById('page-title').textContent=titles[currentView]||currentView;
+    renderView(currentView);
+  });
+});
+
+function renderView(v){
+  const a=document.getElementById('content-area');
+  const fn={dashboard:renderDashboard,equipment:renderEquipment,sites:renderSites,service:renderService,repairs:renderRepairs,history:renderHistory,documents:renderDocuments,invoices:renderInvoices,users:renderUsers,reports:renderReports};
+  a.innerHTML=(fn[v]||renderDashboard)();
+}
+
+/* ── Dashboard ── */
+function renderDashboard(){
+  const c={active:0,maintenance:0,repair:0,idle:0};
+  EQUIPMENT.forEach(e=>c[e.status]++);
+  const days=['M','T','W','T','F','S','S'],hrs=[18,22,15,24,20,8,0],mx=24;
+  return `
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Equipment</div><div class="stat-value">${EQUIPMENT.length}</div><div class="stat-sub">+2 this month</div></div>
+    <div class="stat-card"><div class="stat-label">Active</div><div class="stat-value" style="color:var(--green)">${c.active}</div><div class="stat-sub">Across 4 active sites</div></div>
+    <div class="stat-card"><div class="stat-label">Service / Repair</div><div class="stat-value" style="color:var(--amber)">${c.maintenance+c.repair}</div><div class="stat-sub">${c.repair} repair overdue</div></div>
+    <div class="stat-card"><div class="stat-label">Idle / Depot</div><div class="stat-value" style="color:var(--gray)">${c.idle}</div><div class="stat-sub">Available for deploy</div></div>
+  </div>
+  <div class="panel-row">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Equipment Registry</span><button class="btn" style="font-size:12px;padding:4px 10px;" onclick="document.querySelector('[data-view=equipment]').click()">View all <i class="ti ti-arrow-right" style="font-size:12px;"></i></button></div>
+      <div class="table-wrap"><table><thead><tr><th>Equipment</th><th>Type</th><th>Site</th><th>Status</th><th>Next Service</th><th>Hours</th></tr></thead><tbody>
+      ${EQUIPMENT.slice(0,5).map(e=>`<tr>
+        <td><div class="equip-name">${e.name}</div><div class="equip-id">${e.id}</div></td>
+        <td style="color:var(--text-2);font-size:12px;">${e.type}</td>
+        <td style="font-size:12px;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.site}</td>
+        <td>${sbadge(e.status)}</td>
+        <td style="font-size:12px;">${e.service}</td>
+        <td style="font-size:12px;font-family:monospace;">${e.hours.toLocaleString()}</td>
+      </tr>`).join('')}
+      </tbody></table></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Alerts & Reminders</span><span style="font-size:11px;color:var(--text-3);">${ALERTS.length} active</span></div>
+        ${ALERTS.map(a=>`<div class="alert-item"><div class="alert-icon ai-${a.type}"><i class="ti ${a.icon}" style="font-size:14px;"></i></div><div><div class="alert-title">${a.title}</div><div class="alert-sub">${a.sub}</div></div></div>`).join('')}
+      </div>
+      <div class="panel">
+        <div class="panel-header"><span class="panel-title">Weekly usage (hrs)</span></div>
+        <div style="padding:10px 14px;">
+          <div class="heatmap-grid" style="margin-bottom:4px;">${days.map(d=>`<div style="font-size:9px;color:var(--text-3);text-align:center;">${d}</div>`).join('')}</div>
+          <div class="heatmap-grid">${hrs.map(h=>{const p=h/mx;const bg=h===0?'var(--bg)':p>.8?'#0C447C':p>.5?'#185FA5':p>.2?'#378ADD':'#B5D4F4';return `<div style="height:38px;border-radius:4px;background:${bg};display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;"><span style="font-size:9px;font-weight:600;color:${h>0?'#fff':'var(--text-3)'};">${h>0?h:''}</span></div>`;}).join('')}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Site utilisation</span></div>
+      <div style="padding:12px 16px;">
+        ${[['Site A — Hitech City',2,4,.5],['Site B — Gachibowli',2,4,.5],['Site C — Kukatpally',2,3,.67],['Site D — Uppal',1,2,.5]].map(([s,c,cap,p])=>`
+        <div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px;"><span>${s}</span><span style="color:var(--text-3);">${c}/${cap} machines</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(p*100)}%;background:${p>.8?'var(--red)':p>.5?'var(--amber)':'var(--blue)'};"></div></div></div>`).join('')}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">Recent invoices</span><button class="btn" style="font-size:12px;padding:4px 10px;" onclick="document.querySelector('[data-view=invoices]').click()">View all <i class="ti ti-arrow-right" style="font-size:12px;"></i></button></div>
+      <div style="padding:0 16px;">
+        ${INVOICES.slice(0,4).map(inv=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid var(--border);"><div><div style="font-size:12px;font-weight:600;">${inv.desc}</div><div style="font-size:11px;color:var(--text-3);">${inv.id} · ${inv.date}</div></div><div style="text-align:right;"><div style="font-size:12px;font-weight:600;">${inv.amount}</div><span class="badge b-${inv.status}">${inv.status}</span></div></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ── Equipment ── */
+function renderEquipment(){
+  return `
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <div class="tabs">
+      <div class="tab active" onclick="filterStatus('all',this)">All</div>
+      <div class="tab" onclick="filterStatus('active',this)">Active</div>
+      <div class="tab" onclick="filterStatus('maintenance',this)">Maintenance</div>
+      <div class="tab" onclick="filterStatus('repair',this)">Repair</div>
+      <div class="tab" onclick="filterStatus('idle',this)">Idle</div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export CSV</button>
+      <button class="btn btn-primary" onclick="openModal()"><i class="ti ti-plus"></i> Add Equipment</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="table-wrap">
+      <table><thead><tr><th>Equipment</th><th>Type</th><th>Site Allocation</th><th>Status</th><th>Operator</th><th>Next Service</th><th>Hours</th><th>Purchase Value</th><th>Actions</th></tr></thead>
+      <tbody id="equip-tbody">
+      ${EQUIPMENT.map(e=>`<tr data-status="${e.status}">
+        <td><div class="equip-name">${e.name}</div><div class="equip-id">${e.id}</div></td>
+        <td style="font-size:12px;color:var(--text-2);">${e.type}</td>
+        <td style="font-size:12px;">${e.site}</td>
+        <td>${sbadge(e.status)}</td>
+        <td style="font-size:12px;">${e.operator}</td>
+        <td style="font-size:12px;">${e.service}</td>
+        <td style="font-size:12px;font-family:monospace;">${e.hours.toLocaleString()}</td>
+        <td style="font-size:12px;">${e.purchase}</td>
+        <td><div style="display:flex;gap:4px;">
+          <button class="btn" style="padding:4px 8px;" title="View details"><i class="ti ti-eye" style="font-size:13px;"></i></button>
+          <button class="btn" style="padding:4px 8px;" title="Log service"><i class="ti ti-tool" style="font-size:13px;"></i></button>
+          <button class="btn" style="padding:4px 8px;" title="Edit"><i class="ti ti-edit" style="font-size:13px;"></i></button>
+        </div></td>
+      </tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>`;
+}
+
+function filterStatus(s,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#equip-tbody tr').forEach(r=>{r.style.display=(s==='all'||r.dataset.status===s)?'':'none';});
+}
+
+function filterTable(){
+  if(currentView!=='equipment')return;
+  const q=document.getElementById('search-input').value.toLowerCase();
+  document.querySelectorAll('#equip-tbody tr').forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?'':'none';});
+}
+
+function exportCSV(){
+  const hdr='ID,Name,Type,Site,Status,Operator,Next Service,Hours,Purchase Value\n';
+  const rows=EQUIPMENT.map(e=>[e.id,e.name,e.type,e.site,e.status,e.operator,e.service,e.hours,e.purchase].join(',')).join('\n');
+  const blob=new Blob([hdr+rows],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='equiptrack_export.csv';a.click();
+}
+
+/* ── Sites ── */
+function renderSites(){
+  const sites=['Site A — Hitech City','Site B — Gachibowli','Site C — Kukatpally','Site D — Uppal','Depot — Secunderabad'];
+  const iconMap={Crane:'ti-crane',Vehicle:'ti-truck',Excavator:'ti-bulldozer',Drill:'ti-tool',Concrete:'ti-droplet',Road:'ti-road'};
+  return `<div class="grid-3">${sites.map(site=>{
+    const machines=EQUIPMENT.filter(e=>e.site===site);
+    return `<div class="site-card">
+      <div class="site-header">
+        <div><div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;"><i class="ti ti-map-pin" style="color:var(--blue);font-size:14px;"></i>${site.split(' — ')[0]}</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px;">${site.includes('—')?site.split(' — ')[1]:''}</div></div>
+        <span class="badge b-active">${machines.length} machines</span>
+      </div>
+      <div>${machines.length===0?'<div style="padding:14px;text-align:center;color:var(--text-3);font-size:12px;">No equipment assigned</div>':
+      machines.map(e=>`<div class="site-machine"><div class="machine-icon"><i class="ti ${iconMap[e.type]||'ti-settings'}" style="font-size:14px;color:var(--text-2);"></i></div>
+      <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div><div style="font-size:10px;color:var(--text-3);">${e.id}</div></div>${sbadge(e.status)}</div>`).join('')}</div>
+      <div style="padding:10px 14px;"><button class="btn" style="width:100%;justify-content:center;font-size:12px;"><i class="ti ti-arrows-exchange"></i> Reallocate</button></div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* ── Service ── */
+function renderService(){
+  const sorted=[...EQUIPMENT].sort((a,b)=>new Date(a.service)-new Date(b.service));
+  return `<div class="panel mb16">
+    <div class="panel-header"><span class="panel-title">Upcoming service schedule</span><button class="btn btn-primary" style="font-size:12px;padding:5px 12px;"><i class="ti ti-plus"></i> Schedule service</button></div>
+    <table><thead><tr><th>Equipment</th><th>Site</th><th>Scheduled Date</th><th>Hours Logged</th><th>Urgency</th><th>Action</th></tr></thead><tbody>
+    ${sorted.map(e=>{const d=new Date(e.service),now=new Date('2025-06-15'),days=Math.round((d-now)/864e5);
+    const urg=days<0?'b-repair':days<14?'b-maintenance':'b-active';const lbl=days<0?`${Math.abs(days)}d overdue`:days===0?'Today':`In ${days} days`;
+    return `<tr><td><div class="equip-name">${e.name}</div><div class="equip-id">${e.id}</div></td>
+    <td style="font-size:12px;">${e.site}</td><td style="font-size:12px;">${e.service}</td>
+    <td style="font-size:12px;font-family:monospace;">${e.hours.toLocaleString()} hrs</td>
+    <td><span class="badge ${urg}">${lbl}</span></td>
+    <td><button class="btn" style="font-size:12px;padding:4px 10px;">Log service</button></td></tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+
+/* ── Repairs ── */
+function renderRepairs(){
+  const r=EQUIPMENT.filter(e=>e.status==='repair'||e.status==='maintenance');
+  return `<div class="grid-2">${r.map(e=>`<div class="panel">
+    <div class="panel-header"><div><div class="panel-title">${e.name}</div><div style="font-size:11px;color:var(--text-3);margin-top:2px;">${e.id} · ${e.site}</div></div>${sbadge(e.status)}</div>
+    <div style="padding:12px 16px;">
+      ${[['Operator',e.operator],['Last service',e.service],['Total hours',e.hours.toLocaleString()+' hrs'],['Purchase value',e.purchase]].map(([l,v])=>`
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;"><span style="color:var(--text-2);">${l}</span><span style="font-weight:600;">${v}</span></div>`).join('')}
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn" style="flex:1;justify-content:center;font-size:12px;"><i class="ti ti-notes"></i> Add note</button>
+        <button class="btn btn-primary" style="flex:1;justify-content:center;font-size:12px;"><i class="ti ti-check"></i> Mark resolved</button>
+      </div>
+    </div>
+  </div>`).join('')}</div>`;
+}
+
+/* ── History ── */
+function renderHistory(){
+  const log=[
+    ['CAT 320 Excavator','EQ-001','2025-06-14',8,'Suresh M.','Site A','Operation'],
+    ['Volvo FMX Dumper','EQ-002','2025-06-14',6,'Ravi K.','Site B','Operation'],
+    ['JCB 3CX Backhoe','EQ-004','2025-06-13',10,'Mohan D.','Site C','Operation'],
+    ['Atlas Copco Drill','EQ-003','2025-06-13',4,'Anjali R.','Site A','Maintenance start'],
+    ['Manitowoc Crane','EQ-007','2025-06-12',7,'Prasad N.','Site C','Operation'],
+    ['TATA 407 Pickup','EQ-006','2025-06-11',3,'Lakshmi T.','Depot','Transfer'],
+    ['Schwing Stetter Pump','EQ-005','2025-06-10',0,'—','Site B','Repair flag'],
+  ];
+  const typeColor=t=>t==='Operation'?'b-active':t.includes('Repair')?'b-repair':t.includes('Maintenance')?'b-maintenance':'b-idle';
+  return `<div class="panel">
+    <div class="panel-header"><span class="panel-title">Usage history log</span>
+    <button class="btn" onclick="exportCSV()"><i class="ti ti-download"></i> Export log</button></div>
+    <table><thead><tr><th>Equipment</th><th>Date</th><th>Hours Used</th><th>Operator</th><th>Site</th><th>Event type</th></tr></thead><tbody>
+    ${log.map(([n,id,dt,h,op,s,t])=>`<tr>
+      <td><div class="equip-name">${n}</div><div class="equip-id">${id}</div></td>
+      <td style="font-size:12px;">${dt}</td>
+      <td style="font-size:12px;font-family:monospace;">${h} hrs</td>
+      <td style="font-size:12px;">${op}</td>
+      <td style="font-size:12px;">${s}</td>
+      <td><span class="badge ${typeColor(t)}">${t}</span></td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+/* ── Documents ── */
+function renderDocuments(){
+  const docs=[
+    {name:'CAT 320 — Service Manual',type:'PDF',size:'4.2 MB',date:'2025-01-10',equip:'EQ-001'},
+    {name:'Crane Insurance Certificate',type:'PDF',size:'0.8 MB',date:'2025-03-22',equip:'EQ-007'},
+    {name:'Site A Safety Inspection',type:'PDF',size:'1.1 MB',date:'2025-05-15',equip:'Site A'},
+    {name:'Pump Repair Invoice',type:'PDF',size:'0.3 MB',date:'2025-06-08',equip:'EQ-005'},
+    {name:'Excavator Site Photos',type:'ZIP',size:'22 MB',date:'2025-06-01',equip:'EQ-001'},
+  ];
+  return `<div class="panel">
+    <div class="panel-header"><span class="panel-title">Documents & photos</span>
+    <button class="btn btn-primary" style="font-size:12px;padding:5px 12px;"><i class="ti ti-upload"></i> Upload</button></div>
+    <table><thead><tr><th>Document</th><th>Type</th><th>Size</th><th>Linked to</th><th>Date added</th><th>Actions</th></tr></thead><tbody>
+    ${docs.map(d=>`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:28px;height:28px;background:${d.type==='PDF'?'var(--red-light)':'var(--blue-light)'};border-radius:7px;display:flex;align-items:center;justify-content:center;"><i class="ti ${d.type==='PDF'?'ti-file-type-pdf':'ti-file-zip'}" style="font-size:14px;color:${d.type==='PDF'?'var(--red)':'var(--blue)'};"></i></div><span style="font-size:13px;font-weight:600;">${d.name}</span></div></td>
+      <td><span class="badge ${d.type==='PDF'?'b-repair':'b-active'}">${d.type}</span></td>
+      <td style="font-size:12px;">${d.size}</td>
+      <td style="font-size:12px;font-family:monospace;">${d.equip}</td>
+      <td style="font-size:12px;">${d.date}</td>
+      <td><div style="display:flex;gap:4px;">
+        <button class="btn" style="padding:4px 8px;" title="Preview"><i class="ti ti-eye" style="font-size:13px;"></i></button>
+        <button class="btn" style="padding:4px 8px;" title="Download"><i class="ti ti-download" style="font-size:13px;"></i></button>
+        <button class="btn" style="padding:4px 8px;" title="Delete"><i class="ti ti-trash" style="font-size:13px;"></i></button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+/* ── Invoices ── */
+function renderInvoices(){
+  const total=INVOICES.reduce((s,i)=>s+parseInt(i.amount.replace(/[₹,]/g,'')),0);
+  const pending=INVOICES.filter(i=>i.status==='pending').reduce((s,i)=>s+parseInt(i.amount.replace(/[₹,]/g,'')),0);
+  return `
+  <div class="stats-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;">
+    <div class="stat-card"><div class="stat-label">Total invoiced</div><div class="stat-value">₹${(total/100000).toFixed(1)}L</div></div>
+    <div class="stat-card"><div class="stat-label">Pending payment</div><div class="stat-value" style="color:var(--amber);">₹${(pending/100000).toFixed(1)}L</div></div>
+    <div class="stat-card"><div class="stat-label">Invoices this month</div><div class="stat-value">${INVOICES.length}</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-title">Invoice register</span><button class="btn btn-primary" style="font-size:12px;padding:5px 12px;"><i class="ti ti-plus"></i> New invoice</button></div>
+    <table><thead><tr><th>Invoice ID</th><th>Description</th><th>Vendor</th><th>Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+    ${INVOICES.map(inv=>`<tr>
+      <td style="font-family:monospace;font-size:12px;">${inv.id}</td>
+      <td style="font-size:12px;">${inv.desc}</td>
+      <td style="font-size:12px;color:var(--text-2);">${inv.vendor}</td>
+      <td style="font-size:12px;">${inv.date}</td>
+      <td style="font-size:12px;font-weight:700;">${inv.amount}</td>
+      <td><span class="badge b-${inv.status}">${inv.status}</span></td>
+      <td><div style="display:flex;gap:4px;">
+        <button class="btn" style="padding:4px 8px;" title="View"><i class="ti ti-eye" style="font-size:13px;"></i></button>
+        <button class="btn" style="padding:4px 8px;" title="Download PDF"><i class="ti ti-download" style="font-size:13px;"></i></button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+/* ── Users ── */
+function renderUsers(){
+  const perms={Admin:'Full access — all modules',Engineer:'View + log maintenance','Contractor':'View assigned equipment',Client:'Read-only access'};
+  return `<div class="panel">
+    <div class="panel-header"><span class="panel-title">Users & access roles</span><button class="btn btn-primary" style="font-size:12px;padding:5px 12px;"><i class="ti ti-user-plus"></i> Invite user</button></div>
+    <table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Permissions</th><th>Actions</th></tr></thead><tbody>
+    ${USERS.map(u=>`<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="avatar">${u.av}</div><span style="font-size:13px;font-weight:600;">${u.name}</span></div></td>
+      <td style="font-size:12px;color:var(--text-2);">${u.email}</td>
+      <td><span class="chip ${u.chip}">${u.role}</span></td>
+      <td style="font-size:12px;color:var(--text-2);">${perms[u.role]||''}</td>
+      <td><div style="display:flex;gap:4px;">
+        <button class="btn" style="padding:4px 8px;" title="Edit"><i class="ti ti-edit" style="font-size:13px;"></i></button>
+        <button class="btn" style="padding:4px 8px;" title="Remove"><i class="ti ti-trash" style="font-size:13px;"></i></button>
+      </div></td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+/* ── Reports ── */
+function renderReports(){
+  const rpts=[
+    {icon:'ti-chart-bar',title:'Equipment utilisation report',desc:'Hours logged per machine, idle time, site coverage',bg:'var(--blue-light)',tc:'var(--blue)'},
+    {icon:'ti-tool',title:'Maintenance cost report',desc:'Service costs, repair spend, parts breakdown by vendor',bg:'var(--amber-light)',tc:'var(--amber-dark)'},
+    {icon:'ti-map-pin',title:'Site allocation summary',desc:'Current machine deployment per site, movement history',bg:'var(--green-light)',tc:'var(--green-dark)'},
+    {icon:'ti-receipt',title:'Invoice & payment tracker',desc:'Paid vs pending, overdue invoices, vendor-wise spend',bg:'var(--red-light)',tc:'var(--red)'},
+    {icon:'ti-history',title:'Asset lifecycle report',desc:'Age, depreciation, and ROI for each equipment unit',bg:'#EEEDFE',tc:'#3C3489'},
+    {icon:'ti-users',title:'Operator productivity report',desc:'Hours per operator, incident flags, usage quality',bg:'var(--green-light)',tc:'var(--green-dark)'},
+  ];
+  return `<div class="grid-2">${rpts.map(r=>`<div class="report-card">
+    <div style="display:flex;gap:14px;align-items:flex-start;">
+      <div style="width:42px;height:42px;border-radius:var(--radius);background:${r.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <i class="ti ${r.icon}" style="font-size:20px;color:${r.tc};"></i>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${r.title}</div>
+        <div style="font-size:12px;color:var(--text-2);line-height:1.5;">${r.desc}</div>
+        <div style="margin-top:10px;font-size:12px;color:${r.tc};display:flex;align-items:center;gap:4px;font-weight:600;">Generate report <i class="ti ti-arrow-right" style="font-size:12px;"></i></div>
+      </div>
+    </div>
+  </div>`).join('')}</div>`;
+}
+
+/* ── Modal ── */
+function openModal(){document.getElementById('modal').style.display='flex';}
+function closeModal(){document.getElementById('modal').style.display='none';}
+function saveEquipment(){alert('Equipment saved! (Connect to your backend API to persist data.)');closeModal();}
+window.onclick=function(e){if(e.target===document.getElementById('modal'))closeModal();}
+
+/* ── Init ── */
+renderView('dashboard');
+</script>
+</body>
+</html>
